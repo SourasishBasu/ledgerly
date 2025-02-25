@@ -72,12 +72,28 @@
 │   ├── grafana.png
 │   ├── inboundrules.png
 │   └── lambda-uri.png
-├── docker-compose.yml
-├── monitoring
+├── deployment
+│   ├── ansible
+│   │   ├── inventory
+│   │   ├── playbook.yml
+│   │   └── roles
+│   │       ├── common
+│   │       │   └── tasks
+│   │       │       └── main.yml
+│   │       ├── docker
+│   │       │   └── tasks
+│   │       │       └── main.yml
+│   │       ├── files
+│   │       │   └── tasks
+│   │       │       └── main.yml
+│   │       └── tools
+│   │           └── tasks
+│   │               └── main.yml
+│   ├── docker-compose.yml
 │   ├── grafana
 │   │   └── datasources.yml
 │   └── prometheus
-│       └── prometheus.yaml
+│       └── prometheus.yml
 └── services
     ├── backend
     │   ├── Dockerfile
@@ -105,7 +121,7 @@
         ├── Dockerfile
         └── app.py
 
-12 directories, 30 files
+21 directories, 36 files
 ```
 
 Primary Services:
