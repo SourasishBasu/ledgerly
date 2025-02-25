@@ -1,0 +1,8 @@
+---
+  - name: Setup Deployment Environment
+    hosts: test
+    roles:
+      - common
+      - docker
+      - tools
+      - files

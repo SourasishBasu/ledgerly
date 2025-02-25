@@ -20,3 +20,8 @@ scrape_configs:
  - job_name: 'cadvisor'
    static_configs:
      - targets: ['<instance-private-ip>:8090']
+
+# Traefik Logs
+ - job_name: 'traefik'
+   static_configs:
+    - targets: ['traefik:8899']

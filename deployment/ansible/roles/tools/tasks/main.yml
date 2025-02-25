@@ -1,0 +1,29 @@
+---
+- name: Install Bun
+  shell: "curl -fsSL https://bun.sh/install | bash"
+  args:
+    executable: /bin/bash
+  become_user: ubuntu
+
+- name: Install uv package manager
+  shell: "curl -LsSf https://astral.sh/uv/install.sh | sh"
+  args:
+    executable: /bin/bash
+  become_user: ubuntu
+
+- name: Ensure Fish config directory exists for ubuntu user
+  ansible.builtin.file:
+    path: /home/ubuntu/.config/fish
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+
+- name: Add required binaries to Fish config
+  ansible.builtin.lineinfile:
+    path: /home/ubuntu/.config/fish/config.fish
+    line: 'set -x PATH /usr/local/go/bin $HOME/.bun/bin $HOME/.local/bin $PATH'
+    create: yes
+    state: present
+    owner: ubuntu
+    group: ubuntu

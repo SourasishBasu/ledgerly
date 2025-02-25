@@ -1,0 +1,5 @@
+[local]
+localhost ansible_connection=local
+
+[remote]
+ec2_ubuntu ansible_host=x.x.x.x ansible_user=ubuntu ansible_ssh_private_key_file=~/YOUR_KEY.pem

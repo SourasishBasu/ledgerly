@@ -1,0 +1,20 @@
+---
+- name: Copy deployment folder to remote machine
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../" 
+    dest: "/home/ubuntu/deployment"        
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+
+- name: Create required folders
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+  loop:
+    - "/home/ubuntu/deployment/traefik"
+    - "/home/ubuntu/deployment/traefik/logs"
+    - "/home/ubuntu/deployment/letsencrypt"

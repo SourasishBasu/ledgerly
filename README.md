@@ -268,22 +268,25 @@ Once the Instance is Running and passed all system reachability checks, select I
 
 # Remote Backend Setup
 
-1. Install git. Clone the repository and move the contents of the `monitoring/` folder into the EC2 machine.
+1. Clone the repository locally. Add the `.env` file into the `deployment` directory.
 
 ```bash
-mkdir backend
 git clone https://github.com/sourasishbasu/ledgerly.git
-mv $HOME/ledgerly/monitoring/* $HOME/ledgerly/docker-compose.yml $HOME/backend
-```
-
-2. Create the logs folder and secrets file. Copy contents of `services/backend/env.example` and replace secrets and endpoints into the `.env` file.
-
-```bash
-cd backend
-mkdir logs
+cd ledgerly/deployment
 touch .env
 ```
-3. Install [Docker on Ubuntu](https://docs.docker.com/engine/install/ubuntu/).
+2. Install Ansible.
+
+```bash
+sudo apt install ansible
+```
+
+3. Run the playbook at `deployment/ansible/playbook.yml` to setup the VM for deployment.
+
+```bash
+cd ansible
+ansible-playbook -i inventory playbook.yml
+```
 
 ## Database
 

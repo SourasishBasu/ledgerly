@@ -1,0 +1,29 @@
+---
+- name: Add necessary repositories
+  ansible.builtin.apt_repository:
+    repo: "{{ item }}"
+    state: present
+  with_items:
+    - ppa:fish-shell/release-3
+    
+- name: Install essential packages
+  ansible.builtin.apt:
+    name:
+      - unzip
+      - apt-transport-https
+      - ca-certificates
+      - lsb-release
+      - gnupg
+      - btop
+      - wget
+      - nano
+      - curl
+      - tmux
+      - git
+      - gh
+      - fish
+      - python3
+      - python3-pip
+    state: latest
+    update_cache: yes
+  become: yes
