@@ -1,0 +1,62 @@
+[
+  {
+    "date": "2025-02-03",
+    "category": "food",
+    "vendor": "Pizza Palace",
+    "amount": 23.5
+  },
+  {
+    "date": "2025-02-11",
+    "category": "work",
+    "vendor": "Office Supplies Co.",
+    "amount": 89.99
+  },
+  {
+    "date": "2025-02-12",
+    "category": "transport",
+    "vendor": "City Taxi Service",
+    "amount": 42.75
+  },
+  {
+    "date": "2025-02-15",
+    "category": "food",
+    "vendor": "Grocery Mart",
+    "amount": 156.32
+  },
+  {
+    "date": "2025-02-18",
+    "category": "entertainment",
+    "vendor": "Cinema World",
+    "amount": 35.00
+  },
+  {
+    "date": "2025-02-20",
+    "category": "utilities",
+    "vendor": "Electric Company",
+    "amount": 124.87
+  },
+  {
+    "date": "2025-02-22",
+    "category": "food",
+    "vendor": "Cafe Express",
+    "amount": 18.45
+  },
+  {
+    "date": "2025-02-25",
+    "category": "work",
+    "vendor": "Coworking Space",
+    "amount": 250.00
+  },
+  {
+    "date": "2025-02-26",
+    "category": "transport",
+    "vendor": "Fuel Station",
+    "amount": 65.30
+  },
+  {
+    "date": "2025-02-28",
+    "category": "other",
+    "vendor": "Online Subscription",
+    "amount": 12.99
+  }
+]

@@ -12,23 +12,14 @@ class Settings(BaseSettings):
         extra='ignore'
     )
 
-    POSTGRES_SERVER: str = ""
+    POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "localhost")
     POSTGRES_PORT: int = 5432
-    POSTGRES_USER: str = ""
-    POSTGRES_PASSWORD: str = ""
-    POSTGRES_DB: str = ""
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "password")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "test_db")
 
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def DATABASE_URI(self) -> PostgresDsn:
-        return MultiHostUrl.build(
-            scheme="postgresql+psycopg2",
-            username=self.POSTGRES_USER,
-            password=self.POSTGRES_PASSWORD,
-            host=self.POSTGRES_SERVER,
-            port=self.POSTGRES_PORT,
-            path=self.POSTGRES_DB,
-        )
+ 
+    DATABASE_URI: str = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
     
     S3_BUCKET: str
     REGION: str = "ap-south-1"

@@ -1,12 +1,15 @@
-from fastapi import APIRouter, HTTPException, UploadFile, Form, Depends
-from typing import List
+from fastapi import APIRouter, HTTPException, UploadFile, Form
+from typing import List, Dict
 from app.db.models import receipts, CreateReceipt, users
 from app.routers.deps import SessionDep
 from app.core.config import settings
+from app.core.models import UpdateCreds, Expenses
 import boto3
 from botocore.exceptions import NoCredentialsError
 from uuid import uuid4
-from sqlmodel import select
+from sqlmodel import select, extract, func
+from datetime import datetime
+from calendar import month_name
 
 router = APIRouter(prefix="/receipts", tags=["Receipts"])
 
@@ -77,7 +80,7 @@ def create_expenses(session: SessionDep, user_id: str = Form(...), record: Creat
         },
     },
 )
-def update_budget(session: SessionDep, user_id: str = Form(...), budget: int = Form(...)):
+def update_budget(session: SessionDep, user_id: str = Form(...), budget: float = Form(...)):
     try:
         details = session.exec(
             select(users).where(users.user_id == user_id)
@@ -88,12 +91,44 @@ def update_budget(session: SessionDep, user_id: str = Form(...), budget: int = F
         session.commit()
         return {"message": "Budget updated successfully", "budget": budget}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error logging in: {e}")
+        raise HTTPException(status_code=500, detail=f"Error updating budget: {e}")
+
+
+@router.put(
+    "/updateCredentials",
+    summary="Update the user's credentials",
+    responses={
+        201: {
+            "description": "Credentials updated successfully",
+            "content": {"application/json": {"example": {"message": "Credentials updated successfully"}}},
+        },
+        500: {
+            "description": "Server error",
+            "content": {"application/json": {"example": {"detail": "Error updating credentials: ERROR"}}},
+        },
+    },
+)
+def update_credentials(session: SessionDep, user_id: str = Form(...), request: UpdateCreds = Form(...)):
+    try:
+        details = session.exec(
+            select(users).where(users.user_id == user_id)
+        ).first()
+        if not details:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+        update_fields = request.model_dump(exclude_unset=True)
+        for field, value in update_fields.items():
+            setattr(details, field, value)
+        session.commit()
+        return {"message": "Credentials updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating credentials: {e}")
+    
 
 @router.get(
     "/getExpenses/{user_id}",
     summary="Get all expenses for a user",
-    response_model=List[receipts],
+    response_model=List[Expenses],
     responses={
         200: {"description": "Successfully fetched list of user expense records"},
         500: {"description": "READ operation error"},
@@ -104,6 +139,89 @@ def get_expenses(user_id: str, session: SessionDep):
         expenses = session.exec(
             select(receipts).where(receipts.user_id == user_id)
         ).all()
-        return expenses
+
+        results = [
+            Expenses(
+                date=expense.receipt_date,
+                category=expense.category,
+                vendor=expense.vendor_name,
+                amount=float(expense.total_amount),
+            )
+            for expense in expenses
+        ]
+
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"READ operation error: {e}")
+
+
+@router.get(
+    "/getMonthlyStats/{user_id}",
+    summary="Get total amount per category per month for a user",
+    response_model=List[Dict],
+    responses={
+        200: {"description": "Successfully fetched monthly category stats"},
+        500: {"description": "READ operation error"},
+    },
+)
+def get_monthly_expenses(user_id: str, session: SessionDep):
+    try:
+        results = session.exec(
+            select(
+                extract("month", receipts.receipt_date).label("month"),
+                receipts.category,
+                func.sum(receipts.total_amount).label("total_amount")
+            )
+            .where(receipts.user_id == user_id)
+            .group_by(extract("month", receipts.receipt_date), receipts.category)
+            .order_by(extract("month", receipts.receipt_date))
+        ).all()
+
+        return [
+            {
+                "month": month_name[int(month)],
+                "category": category,
+                "amount": int(total)
+            }
+            for month, category, total in results
+        ]
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"READ operation error: {e}")
+    
+
+@router.get(
+    "/getCategoryStats/{user_id}",
+    summary="Get total amount per category for the current month",
+    response_model=List[Dict],
+    responses={
+        200: {"description": "Successfully fetched current month category stats"},
+        500: {"description": "READ operation error"},
+    },
+)
+def get_category_expenses(user_id: str, session: SessionDep):
+    try:
+        current_month = datetime.now().month
+
+        results = session.exec(
+            select(
+                receipts.category,
+                func.sum(receipts.total_amount).label("total_amount")
+            )
+            .where(
+                receipts.user_id == user_id,
+                extract("month", receipts.receipt_date) == current_month
+            )
+            .group_by(receipts.category)
+        ).all()
+
+        return [
+            {
+                "category": category,
+                "amount": int(total)
+            }
+            for category, total in results
+        ]
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"READ operation error: {e}")

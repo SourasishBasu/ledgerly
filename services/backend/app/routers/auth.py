@@ -1,9 +1,11 @@
 from fastapi import APIRouter, HTTPException, Form
 from app.core.utils import hash_password, verify_password
-from app.db.models import UserCreate, LoginRequest, users
-from sqlmodel import select
+from app.db.models import UserCreate, LoginRequest, users, receipts
+from sqlmodel import select, extract, func
 from app.routers.deps import SessionDep
+from datetime import datetime
 from uuid import uuid4
+
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -59,11 +61,21 @@ def register_user(session: SessionDep, user: UserCreate = Form(...)):
 
 @router.post(
     "/login",
-    summary="Authenticate user and return user_id",
+    summary="Authenticate user and return user_id with current month expenditure",
     responses={
         200: {
             "description": "Login successful",
-            "content": {"application/json": {"example": {"message": "Login successful", "user_id": "uuid"}}},
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "Login successful",
+                        "user_id": "uuid",
+                        "username": "exampleuser",
+                        "budget": 5000,
+                        "expenditure": 1200
+                    }
+                }
+            },
         },
         401: {
             "description": "Invalid credentials",
@@ -77,11 +89,34 @@ def register_user(session: SessionDep, user: UserCreate = Form(...)):
 )
 def login_user(session: SessionDep, loginrequest: LoginRequest = Form(...)):
     try:
+        # Validate user credentials
         credentials = session.exec(
             select(users).where(users.email == loginrequest.email)
         ).first()
+
         if not credentials or not verify_password(loginrequest.password, credentials.password):
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        return {"message": "Login successful", "user_id": credentials.user_id, "username": credentials.username}
+
+        current_month = datetime.now().month
+
+        # Query sum of expenses for current month
+        expenditure = session.exec(
+            select(func.sum(receipts.total_amount))
+            .where(
+                receipts.user_id == credentials.user_id,
+                extract("month", receipts.receipt_date) == current_month
+            )
+        ).one()
+
+        total_expenditure = expenditure or 0
+
+        return {
+            "message": "Login successful",
+            "user_id": credentials.user_id,
+            "username": credentials.username,
+            "budget": float(credentials.budget),
+            "expenditure": float(total_expenditure),
+        }
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error logging in: {e}")

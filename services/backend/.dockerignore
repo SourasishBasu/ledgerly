@@ -5,6 +5,8 @@
 *.json
 *.jpeg
 *.example
+*.sql
+docker-compose.yml
 
 # Git
 .git
