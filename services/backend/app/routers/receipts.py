@@ -142,7 +142,7 @@ def get_expenses(user_id: str, session: SessionDep):
 
         results = [
             Expenses(
-                date=expense.receipt_date,
+                date=expense.receipt_date.strftime("%b %d, %Y"),
                 category=expense.category,
                 vendor=expense.vendor_name,
                 amount=float(expense.total_amount),

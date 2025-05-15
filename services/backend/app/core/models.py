@@ -8,7 +8,7 @@ class UpdateCreds(BaseModel):
     email: Optional[str]
 
 class Expenses(BaseModel):
-    date: date
+    date: str
     category: str
     vendor: str
     amount: float

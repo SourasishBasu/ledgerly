@@ -118,11 +118,11 @@ const chartConfig = {
   },
   food: {
     label: "Food",
-    color: "hsl(220, 70%, 50%)",
+    color: "hsl(160, 60%, 45%)",
   },
   work: {
     label: "Work",
-    color: "hsl(160, 60%, 45%)",
+    color: "hsl(220, 70%, 50%)",
   },
 } satisfies ChartConfig
 

@@ -31,16 +31,16 @@ const monthlyBreakdownData = [
 
 const chartConfig = {
   entertainment: {
-    label: "Personal",
-    color: "hsl(262, 83%, 58%)",
+    label: "Entertainment",
+    color: "hsl(44, 83.30%, 53.10%)",
   },
   food: {
     label: "Food",
-    color: "hsl(0, 84%, 60%)",
+    color: "hsl(160, 60%, 45%)",
   },
   work: {
     label: "Work",
-    color: "hsl(221, 83%, 53%)",
+    color: "hsl(220, 70%, 50%)",
   },
 } satisfies ChartConfig
 
@@ -101,9 +101,10 @@ export function ChartPieBreakdown() {
                   cx="50%"
                   cy="50%"
                   innerRadius={0}
-                  outerRadius={80}
+                  outerRadius={95}
                   paddingAngle={0}
                   dataKey="value"
+                  stroke="none"
                 >
                   {chartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />

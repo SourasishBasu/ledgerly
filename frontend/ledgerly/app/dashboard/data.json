@@ -1,62 +1,74 @@
 [
   {
-    "date": "2025-02-03",
+    "date": "Feb 03, 2025",
     "category": "food",
     "vendor": "Pizza Palace",
     "amount": 23.5
   },
   {
-    "date": "2025-02-11",
+    "date": "Feb 11, 2025",
     "category": "work",
     "vendor": "Office Supplies Co.",
     "amount": 89.99
   },
   {
-    "date": "2025-02-12",
-    "category": "transport",
-    "vendor": "City Taxi Service",
-    "amount": 42.75
-  },
-  {
-    "date": "2025-02-15",
-    "category": "food",
-    "vendor": "Grocery Mart",
-    "amount": 156.32
-  },
-  {
-    "date": "2025-02-18",
+    "date": "Feb 20, 2025",
     "category": "entertainment",
-    "vendor": "Cinema World",
-    "amount": 35.00
+    "vendor": "MovieMax",
+    "amount": 15
   },
   {
-    "date": "2025-02-20",
-    "category": "utilities",
-    "vendor": "Electric Company",
-    "amount": 124.87
-  },
-  {
-    "date": "2025-02-22",
+    "date": "Mar 05, 2025",
     "category": "food",
-    "vendor": "Cafe Express",
-    "amount": 18.45
+    "vendor": "Taco Town",
+    "amount": 12.75
   },
   {
-    "date": "2025-02-25",
+    "date": "Mar 15, 2025",
+    "category": "work",
+    "vendor": "Staples Inc.",
+    "amount": 56.2
+  },
+  {
+    "date": "Mar 22, 2025",
+    "category": "entertainment",
+    "vendor": "Arcade Planet",
+    "amount": 27
+  },
+  {
+    "date": "Apr 02, 2025",
+    "category": "food",
+    "vendor": "Burger Joint",
+    "amount": 18.4
+  },
+  {
+    "date": "Apr 14, 2025",
+    "category": "entertainment",
+    "vendor": "Concert Hall",
+    "amount": 75
+  },
+  {
+    "date": "Apr 29, 2025",
+    "category": "work",
+    "vendor": "Tech Store",
+    "amount": 320
+  },
+  {
+    "date": "May 06, 2025",
+    "category": "food",
+    "vendor": "Healthy Eats",
+    "amount": 30.25
+  },
+  {
+    "date": "May 12, 2025",
+    "category": "entertainment",
+    "vendor": "Comedy Club",
+    "amount": 42
+  },
+  {
+    "date": "May 21, 2025",
     "category": "work",
     "vendor": "Coworking Space",
-    "amount": 250.00
-  },
-  {
-    "date": "2025-02-26",
-    "category": "transport",
-    "vendor": "Fuel Station",
-    "amount": 65.30
-  },
-  {
-    "date": "2025-02-28",
-    "category": "other",
-    "vendor": "Online Subscription",
-    "amount": 12.99
+    "amount": 150
   }
 ]

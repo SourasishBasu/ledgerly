@@ -26,6 +26,12 @@ import {
   IconDotsVertical,
   IconLayoutColumns,
   IconPlus,
+  IconBriefcase,
+  IconMovie,
+  IconSalad,
+  IconReceipt,
+  IconCreditCard,
+  IconUpload,
 } from "@tabler/icons-react"
 import {
   ColumnDef,
@@ -97,6 +103,13 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 export const schema = z.object({
   id: z.number().optional(),
@@ -108,25 +121,54 @@ export const schema = z.object({
 
 export type Transaction = z.infer<typeof schema>
 
+// Category configuration with icons and colors
+const categoryConfig: Record<string, { icon: React.ReactNode; color: string }> = {
+  food: { 
+    icon: <IconSalad size={16} />, 
+    color: "text-green-400 bg-muted-900" 
+  },
+  work: { 
+    icon: <IconBriefcase size={16} />, 
+    color: "text-blue-500 bg-muted-900" 
+  },
+  entertainment: { 
+    icon: <IconMovie size={16} />, 
+    color: "text-amber-300 bg-muted-900" 
+  },
+}
+
 const columns: ColumnDef<Transaction>[] = [
   {
     accessorKey: "date",
-    header: "Date",
+    header: () => <div className="pl-4">Date</div>,
     cell: ({ row }) => {
-      return <TableCellViewer item={row.original} />
+      return (
+        <div className="pl-4">
+          <TableCellViewer item={row.original} />
+        </div>
+      )
     },
     enableHiding: false,
   },
   {
     accessorKey: "category",
     header: "Category",
-    cell: ({ row }) => (
-      <div className="w-32">
-        <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {row.original.category}
-        </Badge>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const category = row.original.category.toLowerCase();
+      const config = categoryConfig[category] || categoryConfig.other;
+      
+      return (
+        <div className="w-32">
+          <Badge 
+            variant="outline" 
+            className={`px-1.5 flex items-center gap-1 ${config.color}`}
+          >
+            {config.icon}
+            {row.original.category}
+          </Badge>
+        </div>
+      )
+    },
   },
   {
     accessorKey: "vendor",
@@ -162,8 +204,6 @@ const columns: ColumnDef<Transaction>[] = [
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-32">
           <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
         </DropdownMenuContent>
@@ -202,6 +242,80 @@ export function DataTable({
     pageIndex: 0,
     pageSize: 5,
   })
+  const [dateFilter, setDateFilter] = React.useState<string>("")
+  const [isAddTransactionOpen, setIsAddTransactionOpen] = React.useState(false)
+  const [isAddExpenseOpen, setIsAddExpenseOpen] = React.useState(false)
+  const [isUploadImageOpen, setIsUploadImageOpen] = React.useState(false)
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
+  const [newExpense, setNewExpense] = React.useState({
+    amount: "",
+    vendor: "",
+    date: new Date().toISOString().split('T')[0], // Default to today in YYYY-MM-DD format
+    category: "food"
+  })
+
+  const handleExpenseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setNewExpense(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleCategoryChange = (value: string) => {
+    setNewExpense(prev => ({ ...prev, category: value }))
+  }
+
+  const handleAddExpense = () => {
+    // Add the new expense to the data
+    const newTransaction: Transaction = {
+      id: data.length + 1,
+      date: newExpense.date,
+      category: newExpense.category,
+      vendor: newExpense.vendor,
+      amount: parseFloat(newExpense.amount) || 0
+    }
+    
+    setData([...data, newTransaction])
+    
+    // Reset form and close dialogs
+    setNewExpense({
+      amount: "",
+      vendor: "",
+      date: new Date().toISOString().split('T')[0],
+      category: "food"
+    })
+    setIsAddExpenseOpen(false)
+    setIsAddTransactionOpen(false)
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedFile(e.target.files[0])
+    }
+  }
+
+  const handleUploadReceipt = () => {
+    if (!selectedFile) {
+      toast({
+        title: "No file selected",
+        description: "Please select a receipt image to upload",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Here you would implement file upload logic
+    console.log("Uploading file:", selectedFile.name)
+    
+    // Reset and close dialog
+    setSelectedFile(null)
+    setIsUploadImageOpen(false)
+    setIsAddTransactionOpen(false)
+    
+    // Show success message
+    toast({
+      title: "Receipt uploaded",
+      description: "Your receipt is being processed",
+    })
+  }
 
   const table = useReactTable({
     data,
@@ -210,6 +324,7 @@ export function DataTable({
       sorting,
       columnVisibility,
       pagination,
+      globalFilter: dateFilter,
     },
     getRowId: (row) => row.id?.toString() || "",
     onSortingChange: setSorting,
@@ -221,6 +336,11 @@ export function DataTable({
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    globalFilterFn: (row, columnId, filterValue) => {
+      const date = row.getValue("date") as string;
+      return date.toLowerCase().includes(filterValue.toLowerCase());
+    },
+    onGlobalFilterChange: setDateFilter,
   })
 
   return (
@@ -228,7 +348,15 @@ export function DataTable({
       defaultValue="outline"
       className="w-full flex-col justify-start gap-6"
     >
-      <div className="flex items-center justify-end px-4 lg:px-6">
+      <div className="flex items-center justify-between px-4 lg:px-6">
+        <div className="w-72">
+          <Input
+            placeholder="Filter by date..."
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="max-w-sm"
+          />
+        </div>
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -263,10 +391,174 @@ export function DataTable({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="default" size="sm" className="bg-blue-600 text-white hover:bg-blue-700">
-            <IconPlus className="mr-1" />
-            <span>Add Transaction</span>
-          </Button>
+          
+          <Dialog open={isAddTransactionOpen} onOpenChange={setIsAddTransactionOpen}>
+            <DialogTrigger asChild>
+              <Button variant="default" size="sm" className="bg-blue-600 text-white hover:bg-blue-700">
+                <IconPlus className="mr-1" />
+                <span>Add Transaction</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Add Transaction</DialogTitle>
+              </DialogHeader>
+              <div className="grid grid-cols-1 gap-4 py-4">
+                <Button 
+                  onClick={() => {
+                    setIsAddExpenseOpen(true);
+                    setIsAddTransactionOpen(false);
+                  }} 
+                  variant="outline"
+                  className="flex justify-start items-center h-16 text-left p-4 bg-black text-white hover:bg-gray-800"
+                >
+                  <div className="flex items-center gap-3">
+                    <IconCreditCard size={24} />
+                    <div>
+                      <div className="font-medium">Add New Expense</div>
+                      <div className="text-xs opacity-70">Manually enter transaction details</div>
+                    </div>
+                  </div>
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setIsUploadImageOpen(true);
+                    setIsAddTransactionOpen(false);
+                  }} 
+                  variant="outline"
+                  className="flex justify-start items-center h-16 text-left p-4 bg-black text-white hover:bg-gray-800"
+                >
+                  <div className="flex items-center gap-3">
+                    <IconUpload size={24} />
+                    <div>
+                      <div className="font-medium">Upload Receipt Image</div>
+                      <div className="text-xs opacity-70">Automatically extract transaction data</div>
+                    </div>
+                  </div>
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          {/* Add New Expense Dialog */}
+          <Dialog open={isAddExpenseOpen} onOpenChange={setIsAddExpenseOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Add New Expense</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="amount">Total Amount</Label>
+                  <Input
+                    id="amount"
+                    name="amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={newExpense.amount}
+                    onChange={handleExpenseChange}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="vendor">Vendor Name</Label>
+                  <Input
+                    id="vendor"
+                    name="vendor"
+                    placeholder="Enter vendor name"
+                    value={newExpense.vendor}
+                    onChange={handleExpenseChange}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="date">Date (YYYY-MM-DD)</Label>
+                  <Input
+                    id="date"
+                    name="date"
+                    type="date"
+                    value={newExpense.date}
+                    onChange={handleExpenseChange}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Select 
+                    value={newExpense.category}
+                    onValueChange={handleCategoryChange}
+                  >
+                    <SelectTrigger id="category">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="work">
+                        <div className="flex items-center gap-2">
+                          <IconBriefcase size={16} />
+                          <span>Work</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="entertainment">
+                        <div className="flex items-center gap-2">
+                          <IconMovie size={16} />
+                          <span>Entertainment</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="food">
+                        <div className="flex items-center gap-2">
+                          <IconSalad size={16} />
+                          <span>Food</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button 
+                  onClick={handleAddExpense}
+                  className="mt-2 bg-white text-black hover:bg-stone-200"
+                >
+                  Add Expense
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          {/* Upload Receipt Image Dialog */}
+          <Dialog open={isUploadImageOpen} onOpenChange={setIsUploadImageOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Upload Receipt Image</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="receipt-image">Select Receipt Image</Label>
+                  <div className="grid gap-2">
+                    <Input
+                      id="receipt-image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="cursor-pointer"
+                    />
+                    {selectedFile && (
+                      <p className="text-sm text-muted-foreground">
+                        Selected: {selectedFile.name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2 mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Upload clear images of receipts for automatic expense tracking.
+                    Supported formats: JPG, PNG
+                  </p>
+                </div>
+                <Button 
+                  onClick={handleUploadReceipt}
+                  className="mt-2 bg-white text-black hover:bg-stone-200"
+                >
+                  Upload Receipt
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       <TabsContent
@@ -426,6 +718,8 @@ const chartConfig = {
 
 function TableCellViewer({ item }: { item: Transaction }) {
   const isMobile = useIsMobile()
+  const category = item.category.toLowerCase();
+  const categoryConf = categoryConfig[category] || categoryConfig.other;
 
   return (
     <Drawer direction={isMobile ? "bottom" : "right"}>
@@ -486,8 +780,12 @@ function TableCellViewer({ item }: { item: Transaction }) {
               </ChartContainer>
               <Separator />
               <div className="grid gap-2">
-                <div className="flex gap-2 leading-none font-medium">
-                  Transaction Category: {item.category}
+                <div className="flex gap-2 leading-none font-medium items-center">
+                  Transaction Category: 
+                  <span className={`flex items-center gap-1 px-2 py-1 rounded-md ${categoryConf.color}`}>
+                    {categoryConf.icon}
+                    {item.category}
+                  </span>
                 </div>
                 <div className="text-muted-foreground">
                   Amount spent: ₹ {item.amount.toFixed(2)}
@@ -504,17 +802,23 @@ function TableCellViewer({ item }: { item: Transaction }) {
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
                 <Label htmlFor="category">Category</Label>
-                <Select defaultValue={item.category}>
+                <Select defaultValue={item.category.toLowerCase()}>
                   <SelectTrigger id="category" className="w-full">
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="food">Food</SelectItem>
-                    <SelectItem value="work">Work</SelectItem>
-                    <SelectItem value="transport">Transport</SelectItem>
-                    <SelectItem value="entertainment">Entertainment</SelectItem>
-                    <SelectItem value="utilities">Utilities</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    {Object.entries(categoryConfig).map(([key, config]) => (
+                      <SelectItem 
+                        key={key} 
+                        value={key}
+                        className="flex items-center gap-2"
+                      >
+                        <span className={`flex items-center gap-2 ${config.color} px-2 py-0.5 rounded`}>
+                          {config.icon}
+                          <span className="capitalize">{key}</span>
+                        </span>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
