@@ -1,4 +1,4 @@
-import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react"
+import { IconTrendingDown, IconTrendingUp, IconWallet, IconCoinRupee, IconPigMoney } from "@tabler/icons-react"
 
 import { Badge } from "@/components/ui/badge"
 import {
@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Icon } from "lucide-react"
 
 export function SectionCards() {
   return (
@@ -17,64 +18,53 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>Monthly Budget</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            ₹ 1000.17
+            ₹ 1000
           </CardTitle>
           <CardAction>
-            <Badge variant="outline">
-              <IconTrendingUp />
-              +12.5%
-            </Badge>
+            <IconWallet />
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Trending up this month <IconTrendingUp className="size-4" />
-          </div>
+          <div className="text-muted-foreground">May 15, 2025</div>
         </CardFooter>
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Expenses</CardDescription>
+          <CardDescription>Total Expenses</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            ₹ 198.27
+            ₹ 222
           </CardTitle>
           <CardAction>
-            <Badge variant="outline">
-              <IconTrendingDown />
-              -5.3%
-            </Badge>
+            <IconCoinRupee />
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Down from last month <IconTrendingDown className="size-4" />
-          </div>
+          <div className="text-muted-foreground">Highest spending category: Work</div>
         </CardFooter>
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Savings</CardDescription>
+          <CardDescription>Total Savings</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            ₹ 339.99
+            ₹ 778
           </CardTitle>
           <CardAction>
+            <IconPigMoney />
+
+          </CardAction>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1.5 text-sm">
             <Badge variant="outline">
               <IconTrendingUp />
               +24.8%
             </Badge>
-          </CardAction>
-        </CardHeader>
-        <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Higher from last month <IconTrendingUp className="size-4" />
-          </div>
         </CardFooter>
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Transactions</CardDescription>
+          <CardDescription>Total Transactions</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            23
+            12
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -84,7 +74,7 @@ export function SectionCards() {
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="text-muted-foreground">Average ₹81.92 per transaction</div>
+          <div className="text-muted-foreground">Average ₹18.50 per transaction</div>
         </CardFooter>
       </Card>
     </div>

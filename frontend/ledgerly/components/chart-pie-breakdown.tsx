@@ -25,7 +25,7 @@ const monthlyBreakdownData = [
   },
   {
     category: "work",
-    amount: 150
+    amount: 50
   }
 ]
 

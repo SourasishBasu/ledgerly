@@ -5,6 +5,7 @@ import { ChartPieBreakdown } from "@/components/chart-pie-breakdown"
 import { DataTable } from "@/components/data-table"
 import { SectionCards } from "@/components/section-cards"
 import { Avatar } from "@/components/ui/avatar"
+import { Logo } from '@/components/logo'
 import { UserCircle } from "lucide-react"
 import { ProfileDialog } from "@/components/profile-dialog"
 import { useState } from "react"
@@ -20,10 +21,7 @@ export default function Page() {
           <header className="border-b border-border bg-background px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className="h-8 w-8 rounded bg-amber-600 flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold">L</span>
-                </div>
-                <span className="text-xl font-semibold">Ledgerly</span>
+                 <Logo className="size-lg" />
               </div>
               <div className="flex items-center space-x-3">
                 <span className="text-sm font-medium">Sasquatch</span>
