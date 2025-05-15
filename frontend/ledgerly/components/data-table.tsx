@@ -15,6 +15,8 @@ import {
   IconSalad,
   IconCreditCard,
   IconUpload,
+  IconPhoto,
+  IconX,
 } from "@tabler/icons-react"
 import {
   ColumnDef,
@@ -206,6 +208,122 @@ function StandardRow({ row }: { row: Row<Transaction> }) {
   )
 }
 
+// File dropzone component
+function FileDropzone({ 
+  onFileSelected, 
+  selectedFile 
+}: { 
+  onFileSelected: (file: File) => void, 
+  selectedFile: File | null 
+}) {
+  const [isDragging, setIsDragging] = React.useState(false)
+  
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+  
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+  
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0]
+      if (file.type.startsWith('image/')) {
+        onFileSelected(file)
+      } else {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload an image file",
+          variant: "destructive"
+        })
+      }
+    }
+  }
+  
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      onFileSelected(e.target.files[0])
+    }
+  }
+  
+  const removeSelectedFile = () => {
+    onFileSelected(null as unknown as File)
+  }
+  
+  return (
+    <div
+      className={`border-2 border-dashed rounded-lg p-6 transition-colors duration-200 ${
+        isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+      } ${selectedFile ? 'bg-gray-50' : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {selectedFile ? (
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-2">
+              <IconPhoto size={20} className="text-blue-500" />
+              <span className="text-sm font-medium truncate max-w-[240px]">
+                {selectedFile.name}
+              </span>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 p-0" 
+              onClick={removeSelectedFile}
+            >
+              <IconX size={16} />
+              <span className="sr-only">Remove file</span>
+            </Button>
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            {(selectedFile.size / 1024).toFixed(1)} KB
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-3 text-center">
+          <IconUpload 
+            size={30} 
+            className="text-gray-400" 
+          />
+          <div>
+            <p className="text-sm font-medium">
+              Drop your receipt image here
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              or click to browse from your computer
+            </p>
+          </div>
+          <label htmlFor="file-upload" className="mt-2">
+            <div className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md text-sm font-medium cursor-pointer">
+              Select Image
+            </div>
+            <input
+              id="file-upload"
+              name="file-upload"
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={handleFileInputChange}
+            />
+          </label>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function DataTable({
   data: initialData,
 }: {
@@ -268,10 +386,8 @@ export function DataTable({
     setIsAddTransactionOpen(false)
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0])
-    }
+  const handleFileChange = (file: File) => {
+    setSelectedFile(file)
   }
 
   const handleUploadReceipt = () => {
@@ -511,20 +627,10 @@ export function DataTable({
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="receipt-image">Select Receipt Image</Label>
-                  <div className="grid gap-2">
-                    <Input
-                      id="receipt-image"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="cursor-pointer"
-                    />
-                    {selectedFile && (
-                      <p className="text-sm text-muted-foreground">
-                        Selected: {selectedFile.name}
-                      </p>
-                    )}
-                  </div>
+                  <FileDropzone 
+                    onFileSelected={handleFileChange}
+                    selectedFile={selectedFile}
+                  />
                 </div>
                 <div className="flex flex-col gap-2 mt-4">
                   <p className="text-sm text-muted-foreground">
@@ -535,6 +641,7 @@ export function DataTable({
                 <Button 
                   onClick={handleUploadReceipt}
                   className="mt-2 bg-white text-black hover:bg-stone-200"
+                  disabled={!selectedFile}
                 >
                   Upload Receipt
                 </Button>
