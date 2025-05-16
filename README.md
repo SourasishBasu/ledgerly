@@ -198,10 +198,7 @@ Backend API accessible at `http://localhost:5000`
 Web Dashboard accessible at `http://localhost:3000`
 
 ## Demo
-
-<p align="center"> 
-  <video src="https://github.com/SourasishBasu/ledgerly/blob/e13de7482e63b8d576df933c6a25606effea73a8/assets/demo.mp4">
-</p>
+https://github.com/user-attachments/assets/9e9d73c8-0b6d-4dd6-baee-66e1c0fc3c48
 <p align="center"><b>Ledgerly Demo</b></p>
 
 ### Screenshots
