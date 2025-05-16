@@ -1,10 +1,12 @@
+"use client"
+
 import React from 'react'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import { TextEffect } from '@/components/ui/text-effect'
 import { AnimatedGroup } from '@/components/ui/animated-group'
 import { HeroHeader } from "@/components/header"
+import { AuthModal } from '@/components/auth-modal'
 
 const transitionVariants = {
     item: {
@@ -27,6 +29,8 @@ const transitionVariants = {
 }
 
 export default function HeroSection() {
+    const [isAuthOpen, setIsAuthOpen] = React.useState(false)
+
     return (
         <>
             <HeroHeader />
@@ -77,12 +81,10 @@ export default function HeroSection() {
                                         key={1}
                                         className="bg-foreground/10 rounded-[calc(var(--radius-xl)+0.125rem)] border p-0.5">
                                         <Button
-                                            asChild
                                             size="lg"
-                                            className="rounded-xl px-5 text-base">
-                                            <Link href="#link">
-                                                <span className="text-nowrap">Try Now</span>
-                                            </Link>
+                                            className="rounded-xl px-5 text-base"
+                                            onClick={() => setIsAuthOpen(true)}>
+                                            <span className="text-nowrap">Try Now</span>
                                         </Button>
                                     </div>
                                 </AnimatedGroup>
@@ -119,6 +121,13 @@ export default function HeroSection() {
                     </div>
                 </section>
             </main>
+
+            {/* Auth Modal */}
+            <AuthModal 
+                open={isAuthOpen} 
+                onOpenChange={setIsAuthOpen}
+                defaultTab="signup"
+            />
         </>
     )
 }
