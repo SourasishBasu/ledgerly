@@ -171,7 +171,7 @@ The default architecture utilizes the free `AWS RDS t4g.micro` instance for host
 
 <img alt="AWS Architecture" src="./assets/er.png">
 
-Copy the contents of `services/ledgerly.sql` into the SQL Query Editor within any database tool used for connecting to the RDS database.
+Copy the contents of `deployment/ledgerly.sql` into the SQL Query Editor within any database tool after connecting to the RDS database.
 
 # Remote Backend Setup
 
@@ -234,13 +234,13 @@ Services which collect and expose system and application metrics from specific r
 
 ### Prometheus
 
-Prometheus is used to scrape and store metrics from various endpoints. The configuration for Prometheus is located in `monitoring/prometheus/prometheus.yaml`.
+Prometheus is used to scrape and store metrics from various endpoints. The configuration for Prometheus is located in `deployment/prometheus/prometheus.yaml`.
 
 ```bash
 hostname -I # Host Private IP
 ```
 
-Replace EC2 instance's private IP into `backend/prometheus/prometheus.yml` under `node_exporter` and `cAdvisor` job's targets.
+Replace EC2 instance's private IP into `deployment/prometheus/prometheus.yml` under `node_exporter` and `cAdvisor` job's targets.
 
 ```yaml
 scrape_configs:
@@ -251,7 +251,7 @@ scrape_configs:
 
 ### Grafana
 
-Grafana is used to visualize the metrics collected by Prometheus. The configuration for Grafana datasources is located in `monitoring/grafana/datasources.yml`.
+Grafana is used to visualize the metrics collected by Prometheus. The configuration for Grafana datasources is located in `deployment/grafana/datasources.yml`.
 
 - Login to Grafana website. Go to Dashboards > New > Import
 - Go to Import Dashboard with ID. Enter `16310` > Load
@@ -285,18 +285,16 @@ GoAccess Dashboard URL: `http://<instance-public-ip>:7880`
 **Set up AWS credentials**:
    Ensure you have your AWS credentials configured. You can do this by setting environment variables or using the AWS CLI.
 
-Run the containers with `Docker Compose`.
+1. Run the containers with `Docker Compose`.
 
 ```
 docker compose up -f docker-compose.cloud.yml --build --pull missing -d
 ```
 
-# Usage
-
-Run the containers with `Docker Compose`.
-
+2. Run the development server for the frontend.
 ```
-docker compose up -f docker-compose.cloud.yml --build --pull missing -d
+cd ../frontend/ledgerly/frontend
+bun dev
 ```
 
 ## Expected Result

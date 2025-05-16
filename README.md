@@ -63,15 +63,9 @@
 
 ```
 .
+├── AWS-setup.md
 ├── README.md
 ├── assets
-│   ├── arch.png
-│   ├── banner.png
-│   ├── er.png
-│   ├── goaccess.png
-│   ├── grafana.png
-│   ├── inboundrules.png
-│   └── lambda-uri.png
 ├── deployment
 │   ├── ansible
 │   │   ├── inventory
@@ -89,11 +83,28 @@
 │   │       └── tools
 │   │           └── tasks
 │   │               └── main.yml
-│   ├── docker-compose.yml
+│   ├── docker-compose.cloud.yml
+│   ├── docker-compose.local.yml
 │   ├── grafana
 │   │   └── datasources.yml
+│   ├── ledgerly.sql
 │   └── prometheus
 │       └── prometheus.yml
+├───frontend
+│   └─── ledgerly
+│        ├─── app
+│        │    └─── dashboard
+│        ├─── bun.lock 
+│        ├─── components
+│        │    └─── ui
+│        ├─── components.json
+│        ├─── eslint.config.mjs
+│        ├─── hooks
+│        ├─── next.env.d.ts
+│        ├─── next.config.ts
+│        ├─── package.json
+│        ├─── postcss.config.mjs
+│        └─── tsconfig.json
 └── services
     ├── backend
     │   ├── Dockerfile
@@ -116,18 +127,16 @@
     │   │       └── receipts.py
     │   ├── pyproject.toml
     │   └── uv.lock
-    ├── ledgerly.sql
     └── receipt-ocr
         ├── Dockerfile
         └── app.py
-
-21 directories, 36 files
 ```
 
 Primary Services:
+- `frontend/ledgerly:` This subdirectory contains the frontend for the Ledgerly application dashboard.
 - `services/backend:` This subdirectory consists of the primary backend API for the entire application facilitating user registration, login, image upload and CRUD operations with the database.
 - `services/receipt-ocr:` This subdirectory consists of the helper application which extracts relevant data using an LLM from user submitted receipt images and adds these records into the database.
-- `monitoring/:` This folder consists of all configurations required for the monitoring systems in place.
+- `deployment/:` This folder consists of all configurations required for the deploying the services and monitoring systems.
 
 # AWS Setup
 
@@ -158,7 +167,9 @@ touch .env
   docker compose up -f docker-compose.local.yml --build --pull missing -d
   ```
 
-4. Install Node v22 and [Bun](https://bun.sh/docs/installation). Run the development server for the frontend.
+4. Copy the contents of `deployment/ledgerly.sql` into the SQL Query Editor within any database tool after connecting to the postgres database container.
+
+5. Install Node v22 and [Bun](https://bun.sh/docs/installation). Run the development server for the frontend.
   ```
   cd ../frontend/ledgerly/frontend
   bun dev
@@ -189,10 +200,9 @@ Web Dashboard accessible at `http://localhost:3000`
 ## Demo
 
 <p align="center"> 
-  <video src= "./assets/demo.mp4">
+  <video src="https://github.com/SourasishBasu/ledgerly/blob/e13de7482e63b8d576df933c6a25606effea73a8/assets/demo.mp4">
 </p>
-<p align="center"><b> Ledgerly Demo </b></p>
-<br>
+<p align="center"><b>Ledgerly Demo</b></p>
 
 ### Screenshots
 <img alt="Landing Page" src="./assets/landing.png">
@@ -210,5 +220,5 @@ This project was made for Project Wing 2025 by [MLSAKIIT](https://mlsakiit.com/)
 
 ## Version
 | Version | Date          		| Comments        |
-| ------- | ------------------- | --------------- |
-| 1.0     | Dec 29th, 2024   | Initial release |
+| ------- | ----------------- | --------------- |
+| 1.0     | May 16th, 2025    | Revised release |
