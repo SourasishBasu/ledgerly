@@ -21,10 +21,10 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
   const [credentials, setCredentials] = useState({
     username: "Sasquatch",
     password: "test123",
-    email: "sourasishbasu06@gmail.com"
+    email: "demo@gmail.com"
   })
   
-  const [budget, setBudget] = useState("5000")
+  const [budget, setBudget] = useState("1000")
 
   const handleCredentialChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target

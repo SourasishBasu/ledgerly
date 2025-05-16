@@ -1,0 +1,41 @@
+---
+services:
+  # Backend API Container
+  api:
+    image: ghcr.io/sourasishbasu/expense-tracker-api:latest
+    container_name: api
+    restart: unless-stopped
+    ports:
+      - 5000:5000
+    env_file:
+      - .env
+    healthcheck:
+      test: >
+        bash -c 'exec 3<>/dev/tcp/127.0.0.1/5000 && echo -e "GET /health HTTP/1.1\r\nhost: 127.0.0.1:5000\r\nConnection: close\r\n\r\n" >&3 && cat <&3 | grep "ok"' 
+      interval: 20s
+      timeout: 10s
+      retries: 5
+
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: test_db
+    ports:
+    - 5432:5432
+    volumes:
+    - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: >
+        bash -c 'pg_isready -U root -d test_db'
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+
+volumes:
+  postgres_data:

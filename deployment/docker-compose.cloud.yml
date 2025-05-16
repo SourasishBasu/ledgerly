@@ -1,0 +1,153 @@
+---
+services:
+
+  # Reverse Proxy and Auto SSL management
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    restart: always
+    command:
+      - "--providers.docker=true" # Enable Docker provider
+      - "--providers.docker.exposedbydefault=false" # Makes sure that services have to explicitly direct Traefik to expose them
+      - "--entrypoints.web.address=:80" # Set up HTTP entrypoint 
+
+      # For HTTPS 
+      # - "--entrypoints.web.address=:443"           
+      # - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      # - "--certificatesresolvers.myresolver.acme.email=email-address@mail.com"
+      # - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+
+      - "--accesslog=true" # Enable access logs
+      - "--accesslog.filepath=/traefik/logs/access.log" # Specify log file path
+      - "--accesslog.bufferingSize=100" # Set log buffering size
+
+      # Enable prometheus metric collection from traefik
+      - --metrics.prometheus=true
+      - --metrics.prometheus.buckets=0.100000, 0.300000, 1.200000, 5.000000
+      - --metrics.prometheus.addEntryPointsLabels=true
+      - --metrics.prometheus.addServicesLabels=true
+      - --entryPoints.metrics.address=:8899
+      - --metrics.prometheus.entryPoint=metrics
+    ports:
+      - "80:80" # Expose HTTP port
+    # - "8080:8080"                              Expose Traefik dashboard port
+    # - "443:443"                                Expose HTTPS port
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Docker socket for Traefik to detect containers
+      - ./traefik/logs:/traefik/logs
+      - ./letsencrypt:/letsencrypt
+    depends_on:
+      api:
+        condition: service_started
+
+  # Backend API Container
+  api:
+    image: ghcr.io/sourasishbasu/expense-tracker-api:latest # pulls latest api image from ghcr.io
+    container_name: api
+    restart: unless-stopped # restart policy
+    env_file:
+      - .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.entrypoints=web"
+      - "traefik.http.routers.api.rule=Host(`ec2-12-34-56-78.ap-south-1.compute.amazonaws.com/api.example.com`) && PathPrefix(`/api`)" # Replace with either the IP/subdomain
+      - "traefik.http.services.api.loadbalancer.server.port=5000" # API container's internal port
+    # - "traefik.http.routers.api.tls.certresolver=myresolver"    For HTTPS
+    healthcheck:
+      # healthcheck on /health route of api using in built tools
+      test: >
+        bash -c 'exec 3<>/dev/tcp/127.0.0.1/5000 && echo -e "GET /health HTTP/1.1\r\nhost: 127.0.0.1:5000\r\nConnection: close\r\n\r\n" >&3 && cat <&3 | grep "ok"' 
+      interval: 20s
+      timeout: 10s
+      retries: 5
+
+  ## Monitoring and Observability
+  goaccess:
+    image: 'xavierh/goaccess-for-nginxproxymanager:latest'
+    container_name: goaccess
+    restart: always
+    ports:
+      - "7880:7880"
+    environment:
+      - TZ=Asia/Kolkata
+      - LOG_TYPE=TRAEFIK #optional - more information below
+      - HTML_REFRESH=5 #optional - Refresh the HTML report every X seconds. https://goaccess.io/man
+      - KEEP_LAST=30 #optional - Keep the last specified number of days in storage. https://goaccess.io/man
+      - PROCESSING_THREADS=1 #optional - This parameter sets the number of concurrent processing threads in the program's execution, affecting log data analysis, typically adjusted based on CPU cores. Default is 1. https://goaccess.io/man
+      - LOG_TYPE_FILE_PATTERN=traefik-*.log
+      - BASIC_AUTH=True #optional
+      - BASIC_AUTH_USERNAME=admin #optional
+      - BASIC_AUTH_PASSWORD=admin #optional   
+    volumes:
+      - ./logs:/opt/log
+    depends_on:
+      traefik:
+        condition: service_started
+
+  ## Container Metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "8090:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /run:/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+    privileged: true
+    restart: unless-stopped
+
+  ## System Usage Metrics
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    command:
+      - '--path.rootfs=/host'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem'
+      - '--collector.cpu'
+      - '--collector.systemd'
+      - '--collector.processes'
+      - '--collector.meminfo'
+    network_mode: host
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
+
+  # Metrics Collector
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    command: "--config.file=/etc/prometheus/prometheus.yml"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+
+  # Dashboard
+  grafana:
+    image: grafana/grafana-oss:11.4.0
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=projectwing
+    volumes:
+      - ./grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - traefik
+      - prometheus
+
+volumes:
+  grafana-data:
+  prometheus-data:
