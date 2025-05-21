@@ -18,10 +18,13 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "password")
     POSTGRES_DB: str = os.getenv("POSTGRES_DB", "test_db")
 
- 
     DATABASE_URI: str = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
     
-    S3_BUCKET: str
+    S3_BUCKET: str = os.getenv('S3_BUCKET')
+    S3_ENDPOINT: str = os.getenv('S3_ENDPOINT')
     REGION: str = "ap-south-1"
+
+    AWS_ACCESS_KEY_ID: str = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY: str = os.getenv('AWS_SECRET_ACCESS_KEY')
 
 settings = Settings()

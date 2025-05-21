@@ -28,7 +28,10 @@ def upload_receipt(file: UploadFile, user_id: str = Form(...), category: str = F
         raise HTTPException(status_code=400, detail="Invalid category")
 
     try:
-        s3_client = boto3.client("s3", region_name=settings.REGION)
+        s3_client = boto3.client("s3", region_name=settings.REGION,
+                                  aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                  aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                                  endpoint_url=settings.S3_ENDPOINT)
         receipt_id = str(uuid4())
         key = f"{receipt_id}_{file.filename}"
         metadata = {'Metadata': {'category': category, 'user': user_id}, 'ACL': 'public-read'}

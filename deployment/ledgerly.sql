@@ -18,8 +18,8 @@ CREATE TABLE users (
     user_id UUID PRIMARY KEY, 
     email VARCHAR(255) NOT NULL UNIQUE,
     username VARCHAR(255) NOT NULL,
-    password TEXT NOT NULL
-    budget NUMERIC(10, 2) DEFAULT 0.00, -- Monthly budget
+    password TEXT NOT NULL,
+    budget NUMERIC(10, 2) DEFAULT 0.00 -- Monthly budget
 );
 
 CREATE INDEX idx_users_email ON users (email);

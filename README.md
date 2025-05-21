@@ -25,7 +25,7 @@
   - Edge runtime-ready
   
 - **AWS Infrastructure**
-  - [Amazon S3](https://aws.amazon.com/s3) Utilized for image storage.
+  - [Amazon S3/Minio](https://aws.amazon.com/s3) Utilized for image storage.
   - [AWS Lambda](https://aws.amazon.com/lambda) for processing JSON and filtering required data
   - [Amazon EC2](https://aws.amazon.com/sns) for provisioning VM instances 
   - [Amazon ECR](https://aws.amazon.com/ecr) for privately hosting container images 
@@ -51,6 +51,7 @@
 ![Traefik](https://img.shields.io/badge/Traefik-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white)
 ![Ansible](https://img.shields.io/badge/ansible-%231A1918.svg?style=for-the-badge&logo=ansible&logoColor=white)
 ![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=Prometheus&logoColor=white)
+![Minio](https://img.shields.io/badge/MinIO-C72E49.svg?style=for-the-badge&logo=MinIO&logoColor=white)
 
 ## Overview
 <img alt="AWS Architecture" src="./assets/arch.png">
@@ -145,45 +146,59 @@ Primary Services:
 
 # Local Setup
 
-1. Clone the repository locally. Add the `.env` file into the `deployment` directory.
+1. Clone the repository locally. Add the environment variables as per the `.env.example` into the `.env` file within the `deployment` directory.
 
-```bash
-git clone https://github.com/sourasishbasu/ledgerly.git
-cd ledgerly/deployment
-touch .env
-```
+    ```bash
+    git clone https://github.com/sourasishbasu/ledgerly.git
+    cd ledgerly/deployment
+    touch .env
+    ```
 
-2. Add the following variables required by the services.
+2. Install [Docker](https://docs.docker.com/desktop/). Run the containers with `Docker Compose`.
 
-- `API_KEY` - [Gemini API KEY]
-- `DB_HOST` - [Connection String for the Database (RDS/Docker/etc)]
-- `DB_PASS` - [Database Password]
-- `DB_USER` - [Database Username]
-- `S3_ENDPOINT` - [S3 Bucket URL of the form https://bucket-name.s3.region.amazonaws.com/]
+    ```
+    docker compose up -f docker-compose.local.yml --build --pull missing -d
+    ```
+3. Install the [Minio Client](https://min.io/docs/minio/linux/reference/minio-mc.html) and add it to PATH. 
 
-3. Install [Docker](https://docs.docker.com/desktop/). Run the containers with `Docker Compose`.
+    - Run the following commands to setup a local S3 compatible object storage bucket named `images`.
+      ```bash
+      mc alias set local http://localhost:9000 minio minio123
+      mc mb local/images
+      ```
 
-  ```
-  docker compose up -f docker-compose.local.yml --build --pull missing -d
-  ```
+    - Configure a Webhook to listen for `s3:ObjectCreated:PUT` events in the bucket and automatically send event notifications to OCR service worker.
+      ```bash
+      mc admin config set local notify_webhook:trigger endpoint="http://worker:8000/event" && mc admin config set local notify_webhook:trigger format=json
+      mc admin service restart local
+      mc event add local/images arn:minio:sqs::trigger:webhook --event put --suffix .jpg
+      mc event add local/images arn:minio:sqs::trigger:webhook --event put --suffix .jpeg
+      mc event add local/images arn:minio:sqs::trigger:webhook --event put --suffix .png
+      ```
+
+    - To list images in Minio, run the following command.
+      ```bash
+      mc ls local/images
+      ```
 
 4. Copy the contents of `deployment/ledgerly.sql` into the SQL Query Editor within any database tool after connecting to the postgres database container.
 
 5. Install Node v22 and [Bun](https://bun.sh/docs/installation). Run the development server for the frontend.
-  ```
-  cd ../frontend/ledgerly/frontend
-  bun dev
-  ```
+    ```
+    cd ../frontend/ledgerly/frontend
+    bun dev
+    ```
 
 ## Expected Result
 
 ```bash
 $ docker compose ps
-NAME            IMAGE                                              COMMAND                  SERVICE         CREATED        STATUS                    PORTS
-api             ghcr.io/sourasishbasu/expense-tracker-api:latest   "fastapi run app/mai…"   api             24 hours ago   Up 10 minutes (healthy)   
-0.0.0.0.05000/tcp
-postgres        postgres:latest                                    "docker-entrypoint.s…"   postgres        24 hours ago   Up 10 minutes (healthy)   
-0.0.0.0:5432->5432/tcp
+NAME       IMAGE                        COMMAND                  SERVICE    CREATED          STATUS                    PORTS
+api        ghcr.io/sourasishbasu/expense-tracker-api:latest   "fastapi run app/mai…"   api        48 minutes ago   Up 48 minutes (healthy)   0.0.0.0:5000->5000/tcp
+minio      minio/minio                  "/usr/bin/docker-ent…"   minio      2 hours ago      Up 2 hours                0.0.0.0:9000-9001->9000-9001/tcp
+postgres   postgres:latest              "docker-entrypoint.s…"   postgres   2 hours ago      Up 2 hours (healthy)      0.0.0.0:5432->5432/tcp
+worker     ghcr.io/sourasishbasu/receipt-ocr:latest           "fastapi run app.py"     worker     48 minutes ago   Up 48 minutes (healthy)   0.0.0.0:8000->8000/tcp
+
 ```
 
 # Usage
@@ -193,9 +208,11 @@ postgres        postgres:latest                                    "docker-entry
 
 ### Routes
 
-Backend API accessible at `http://localhost:5000`
+Backend API: `http://localhost:5000`
 
-Web Dashboard accessible at `http://localhost:3000`
+Web Dashboard: `http://localhost:3000`
+
+Minio Dashboard: `http://localhost:9001`
 
 ## Demo
 https://github.com/user-attachments/assets/9e9d73c8-0b6d-4dd6-baee-66e1c0fc3c48
@@ -218,4 +235,4 @@ This project was made for Project Wing 2025 by [MLSAKIIT](https://mlsakiit.com/)
 ## Version
 | Version | Date          		| Comments        |
 | ------- | ----------------- | --------------- |
-| 1.0     | May 16th, 2025    | Revised release |
+| 1.0     | May 21st, 2025    | Revised release |

@@ -9,8 +9,7 @@ on:
       - ".github/workflows/build-ocr.yml"
 
 env:
-  AWS_REGION: ap-south-1
-  IMAGE_NAME: lambda-receipt-ocr
+  IMAGE_NAME: receipt-ocr
 
 jobs:
   build-and-push:
@@ -21,13 +20,6 @@ jobs:
       packages: write
 
     steps:
-      - name: Login to Amazon ECR
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
-          username: ${{ secrets.AWS_ACCESS_KEY }}
-          password: ${{ secrets.AWS_SECRET_KEY }}
-
       - name: Log in to the Github Container registry
         uses: docker/login-action@v3
         with:
@@ -42,11 +34,9 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./services/receipt-ocr
-          file: ./services/receipt-ocr/Dockerfile.cloud
+          file: ./services/receipt-ocr/Dockerfile.local
           push: true
-          tags: |
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.IMAGE_NAME }}:latest
-            ghcr.io/sourasishbasu/${{ env.IMAGE_NAME }}:latest
+          tags: ghcr.io/sourasishbasu/${{ env.IMAGE_NAME }}:latest
 
       - name: Log out from Docker Hub
         run: docker logout

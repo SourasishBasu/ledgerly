@@ -2,7 +2,7 @@
 services:
   # Backend API Container
   api:
-    image: ghcr.io/sourasishbasu/expense-tracker-api:latest
+    image: expense-tracker-api:latest
     container_name: api
     restart: unless-stopped
     ports:
@@ -12,17 +12,19 @@ services:
     healthcheck:
       test: >
         bash -c 'exec 3<>/dev/tcp/127.0.0.1/5000 && echo -e "GET /health HTTP/1.1\r\nhost: 127.0.0.1:5000\r\nConnection: close\r\n\r\n" >&3 && cat <&3 | grep "ok"' 
-      interval: 20s
+      interval: 40s
       timeout: 10s
-      retries: 5
+      retries: 3
 
   postgres:
     container_name: postgres
     image: postgres:latest
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: test_db
     ports:
     - 5432:5432
@@ -31,11 +33,40 @@ services:
     healthcheck:
       test: >
         bash -c 'pg_isready -U root -d test_db'
-      interval: 5s
+      interval: 30s
       timeout: 5s
-      retries: 10
+      retries: 5
 
+  minio:
+    image: minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
 
+  worker:
+    image: receipt-ocr:latest
+    container_name: worker
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - minio
+      - postgres
+    healthcheck:
+      test: >
+        bash -c 'exec 3<>/dev/tcp/127.0.0.1/8000 && echo -e "GET /health HTTP/1.1\r\nhost: 127.0.0.1:8000\r\nConnection: close\r\n\r\n" >&3 && cat <&3 | grep "ok"' 
+      interval: 40s
+      timeout: 10s
+      retries: 3
 
 volumes:
   postgres_data:
+  minio_data:

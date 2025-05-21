@@ -39,7 +39,8 @@ AWS Elastic Container Registry will be used to host the container images to be r
 
 ```
 - On the Repositories tab and note View push commands for the respective platform to use with Docker during local development.
-- Build the image for `services/receipt-ocr` using Docker locally with the tag `latest` and push it to the ECR repository just created.
+- Replace the S3 configuration in `services/receipt-ocr/handler.py` on line 40 according to the instructions in the comments.
+- Build the image for `services/receipt-ocr` using Docker locally as `lambda-receipt-ocr:latest` and push it to the ECR repository just created.
 
 ## RDS
 
@@ -175,7 +176,7 @@ Copy the contents of `deployment/ledgerly.sql` into the SQL Query Editor within 
 
 # Remote Backend Setup
 
-1. Clone the repository locally. Add the `.env` file into the `deployment` directory.
+1. Clone the repository locally. Add the environment variables as per the `.env.example` into the `.env` file within the `deployment` directory.
 
 ```bash
 git clone https://github.com/sourasishbasu/ledgerly.git
@@ -186,10 +187,11 @@ touch .env
 2. Add the following variables required by the services.
 
 - `API_KEY` - [Gemini API KEY]
-- `DB_HOST` - [Connection String for the Database (RDS/Docker/etc)]
-- `DB_PASS` - [Database Password]
-- `DB_USER` - [Database Username]
+- `POSTGRES_HOST` - [Connection String for the Database (RDS/Docker/etc)]
+- `POSTGRES_PASS` - [Database Password]
+- `POSTGRES_USER` - [Database Username]
 - `S3_ENDPOINT` - [S3 Bucket URL of the form https://bucket-name.s3.region.amazonaws.com/]
+- `S3_BUCKET` - [S3 Bucket name]
 
 3. Install Ansible.
 
@@ -288,7 +290,7 @@ GoAccess Dashboard URL: `http://<instance-public-ip>:7880`
 1. Run the containers with `Docker Compose`.
 
 ```
-docker compose up -f docker-compose.cloud.yml --build --pull missing -d
+docker compose -f docker-compose.cloud.yml up --build --pull missing -d
 ```
 
 2. Run the development server for the frontend.

@@ -1,0 +1,15 @@
+# Use an official Python image
+FROM python:3.13-slim
+
+WORKDIR /app
+
+# Install dependencies
+RUN pip install --no-cache-dir boto3 google-generativeai psycopg2-binary fastapi[standard]
+
+# Copy application code
+COPY . .
+
+EXPOSE 8000
+
+# Command to run your Lambda function handler
+CMD ["fastapi", "run", "app.py"]
